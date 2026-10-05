@@ -1,0 +1,8 @@
+Diabetes-prediction.csv
+*.csv
+__pycache__
+*.pyc
+*.md
+test_app.py
+train_model.py
+.git
