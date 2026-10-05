@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}About & Clinical Methodology - HealthGuard AI{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  
+  <!-- Slim Rounded Sidebar -->
+  <aside class="app-sidebar" aria-label="Sidebar Navigation">
+    <div>
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <span style="font-weight: 800; font-size: 1.15rem; color: var(--primarydark);">HealthGuard<span style="color: var(--primary);">AI</span></span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="nav-item-link">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('history') }}" class="nav-item-link">
+            <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+            <span>Assessment History</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('results') }}" class="nav-item-link">
+            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+            <span>Model Benchmarks</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('about') }}" class="nav-item-link active">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            <span>Clinical Evidence</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('dashboard') }}" class="btn-pill btn-primary btn-full" style="font-size: 0.88rem; padding: 0.65rem 1rem;">
+        <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
+        <span>Run Assessment</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="dashboard-main">
+    <header class="dashboard-topbar">
+      <div>
+        <h1 class="greeting-title">About HealthGuard AI</h1>
+        <p class="greeting-sub">Academic & clinical research overview for Phase 4 Final Project Implementation</p>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-direction: column; gap: 2rem; max-width: 980px;">
+      
+      <!-- Project Mission -->
+      <section class="card" style="padding: 2rem;">
+        <h2 class="card-title" style="margin-bottom: 0.75rem; color: var(--primarydark);">Project Mission & Rationale</h2>
+        <p style="font-size: 0.95rem; color: var(--text); line-height: 1.7; margin-bottom: 1rem;">
+          Type 2 Diabetes Mellitus represents one of the fastest growing global health crises, often progressing asymptomatically 
+          over multiple years. Early detection during the prediabetic window can reverse pathology in up to 60% of cases through targeted lifestyle 
+          modifications. HealthGuard AI bridges complex biostatistics and front-line triage by providing instantaneous, explainable risk estimates 
+          using non-invasive clinical and biometric parameters.
+        </p>
+        <div class="disclaimer-banner">
+          <i data-lucide="alert-triangle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+          <span><strong>Medical Disclaimer:</strong> This web application is an educational and clinical decision-support tool. It does NOT constitute medical advice, diagnosis, or treatment. Laboratory validation via fasting blood glucose (FBG) or oral glucose tolerance testing (OGTT) by a licensed physician is mandatory.</span>
+        </div>
+      </section>
+
+      <!-- Dataset Specifications -->
+      <section class="card" style="padding: 2rem;">
+        <h2 class="card-title" style="margin-bottom: 1rem;">Cohort Dataset Specifications</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+          <div style="background: var(--surface-secondary); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Sample Dimensions</h4>
+            <ul style="font-size: 0.88rem; color: var(--textmuted); padding-left: 1.2rem; line-height: 1.6;">
+              <li>Total Initial Cohort: 100,000 patient records</li>
+              <li>Clean Deduplicated Cohort: 96,128 records</li>
+              <li>Outcome Prevalence: ~8.8% diabetic (heavily imbalanced)</li>
+              <li>Missing Values: 0 (completely complete records)</li>
+            </ul>
+          </div>
+
+          <div style="background: var(--surface-secondary); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Primary Biomarkers</h4>
+            <ul style="font-size: 0.88rem; color: var(--textmuted); padding-left: 1.2rem; line-height: 1.6;">
+              <li>Blood Glucose Level (Pearson r = 0.42)</li>
+              <li>Glycated Hemoglobin HbA1c (Pearson r = 0.40)</li>
+              <li>Age (Pearson r = 0.26)</li>
+              <li>Body Mass Index BMI (Pearson r = 0.21)</li>
+              <li>Hypertension & Heart Disease (r = 0.20 / 0.17)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technical Architecture -->
+      <section class="card" style="padding: 2rem;">
+        <h2 class="card-title" style="margin-bottom: 1rem;">Machine Learning Architecture</h2>
+        <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.92rem; line-height: 1.6; color: var(--text);">
+          <p>
+            • <strong>Pre-processing:</strong> Continuous variables scaled using <code>StandardScaler</code>; categorical variables encoded with <code>OneHotEncoder</code> (with unseen level fallback).
+          </p>
+          <p>
+            • <strong>Model Ensemble:</strong> Tuned Extreme Gradient Boosting (XGBoost) model with <code>scale_pos_weight = 10.33</code> to account for the ~8.8% minority class prevalence.
+          </p>
+          <p>
+            • <strong>Clinical Threshold Tuning:</strong> Decision boundary shifted to <code>0.58</code> to yield <strong>88.1% diagnostic recall</strong> and an <strong>ROC-AUC of 97.6%</strong>, guaranteeing that over 9 out of 10 at-risk individuals are caught.
+          </p>
+        </div>
+      </section>
+
+      <!-- Project Limitations & Future Roadmap -->
+      <section class="card" style="padding: 2rem;">
+        <h2 class="card-title" style="margin-bottom: 1rem;">Limitations & Future Enhancements</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div>
+            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--danger); margin-bottom: 0.5rem;">Current Limitations</h4>
+            <ul style="font-size: 0.86rem; color: var(--textmuted); padding-left: 1.2rem; line-height: 1.6;">
+              <li>Cross-sectional observational dataset; lacks longitudinal panel tracking.</li>
+              <li>Genetic markers and family history of diabetes not available in dataset.</li>
+              <li>Smoking history records 36% "No Info" responses.</li>
+              <li>Requires formal prospective clinical trial validation before in-vivo triage.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--success); margin-bottom: 0.5rem;">Planned Roadmap</h4>
+            <ul style="font-size: 0.86rem; color: var(--textmuted); padding-left: 1.2rem; line-height: 1.6;">
+              <li>Integration with FHIR / HL7 Electronic Health Record systems.</li>
+              <li>Local tree SHAP explainer graphs dynamically rendered in-browser.</li>
+              <li>Native iOS / Android mobile application with camera scan for lab report OCR.</li>
+              <li>Multi-clinic federated learning pipeline with differential privacy guarantees.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+{% endblock %}

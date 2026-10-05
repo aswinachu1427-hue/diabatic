@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+
+{% block title %}Clinical Dashboard - HealthGuard AI{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  
+  <!-- Slim Rounded Sidebar (Pill Navigation) -->
+  <aside class="app-sidebar" aria-label="Sidebar Navigation">
+    <div>
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <span style="font-weight: 800; font-size: 1.15rem; color: var(--primarydark);">HealthGuard<span style="color: var(--primary);">AI</span></span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="nav-item-link active">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#prediction-section" class="nav-item-link">
+            <i data-lucide="activity" style="width: 18px; height: 18px;"></i>
+            <span>Predict Risk</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('history') }}" class="nav-item-link">
+            <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+            <span>Assessment History</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('results') }}" class="nav-item-link">
+            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+            <span>Model Benchmarks</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('about') }}" class="nav-item-link">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            <span>Clinical Evidence</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-mini-profile">
+        <div class="avatar-circle">
+          {{ user.name[:2].upper() }}
+        </div>
+        <div class="user-meta-info">
+          <span class="user-name-text">{{ user.name }}</span>
+          <span class="user-role-badge">Clinician Account</span>
+        </div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="nav-item-link" style="margin-top: 0.75rem; color: var(--danger);">
+        <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
+        <span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Dashboard Content -->
+  <main class="dashboard-main">
+    
+    <!-- Top Bar: Greeting & Quick Actions -->
+    <header class="dashboard-topbar">
+      <div>
+        <h1 class="greeting-title">Patient Cardiometabolic Intelligence</h1>
+        <p class="greeting-sub">Welcome, {{ user.name }} • Logged in at {{ last_check }}</p>
+      </div>
+
+      <div class="topbar-actions">
+        <a href="{{ url_for('history') }}" class="btn-pill btn-secondary" style="padding: 0.6rem 1.25rem;">
+          <i data-lucide="clipboard-list" style="width: 17px; height: 17px;"></i>
+          <span>View Patient Logs</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Stats Strip: 3 KPI Cards -->
+    <section class="stats-strip" aria-label="Key Performance Indicators">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-blue">
+          <i data-lucide="file-check" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Total Assessments</span>
+          <span class="stat-value" id="kpi-total-checks">{{ total_checks }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-purple">
+          <i data-lucide="gauge" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Average Cohort Risk</span>
+          <span class="stat-value" id="kpi-avg-risk">{{ avg_risk }}%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-green">
+          <i data-lucide="calendar" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Last Evaluation</span>
+          <span class="stat-value" id="kpi-last-date" style="font-size: 1.25rem;">{{ last_check }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid: Left Prediction Form (55%), Right Results & Attribution (45%) -->
+    <div class="dashboard-grid" id="prediction-section">
+      
+      <!-- Prediction Form Card -->
+      <section class="form-card">
+        <div class="card-heading-row">
+          <div>
+            <h2 class="card-title">Patient Clinical Profile</h2>
+            <p class="card-desc">Enter non-invasive indicators to predict type 2 diabetes likelihood</p>
+          </div>
+          <button type="button" class="btn-pill btn-ghost" onclick="resetForm()" style="padding: 0.4rem 0.85rem; font-size: 0.80rem;">
+            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <form id="predictionForm" onsubmit="handlePredictionSubmit(event)">
+          
+          <!-- Gender Segmented Toggle -->
+          <div class="form-group">
+            <label class="form-label">Biological Sex</label>
+            <div class="segmented-control" role="group" aria-label="Gender Selection">
+              <button type="button" class="segment-btn active" data-value="Female" onclick="selectGender('Female', this)">Female</button>
+              <button type="button" class="segment-btn" data-value="Male" onclick="selectGender('Male', this)">Male</button>
+            </div>
+            <input type="hidden" id="genderInput" name="gender" value="Female">
+          </div>
+
+          <!-- Age Slider + Synced Number Box -->
+          <div class="form-group">
+            <div class="form-label">
+              <label for="ageSlider">Age (Years)</label>
+              <span class="clinical-badge-helper">Cohort range: 1 - 80 yrs</span>
+            </div>
+            <div class="slider-sync-group">
+              <input type="range" id="ageSlider" class="range-slider" min="1" max="80" value="45" 
+                     oninput="syncSliderAndNumber('ageSlider', 'ageNumber')">
+              <input type="number" id="ageNumber" class="sync-number-box" min="1" max="120" value="45" 
+                     oninput="syncSliderAndNumber('ageNumber', 'ageSlider')">
+            </div>
+          </div>
+
+          <!-- Blood Glucose Level (Continuous) -->
+          <div class="form-group">
+            <div class="form-label">
+              <label for="glucoseInput">Blood Glucose Level (mg/dL)</label>
+              <span class="clinical-badge-helper" style="color: var(--primary);">Optimal fasting: 70 - 100 mg/dL</span>
+            </div>
+            <div class="slider-sync-group">
+              <input type="range" id="glucoseSlider" class="range-slider" min="50" max="300" value="110" 
+                     oninput="syncSliderAndNumber('glucoseSlider', 'glucoseInput')">
+              <input type="number" id="glucoseInput" class="sync-number-box" min="50" max="300" step="1" value="110" 
+                     oninput="syncSliderAndNumber('glucoseInput', 'glucoseSlider')" required>
+            </div>
+          </div>
+
+          <!-- Glycated Hemoglobin (HbA1c %) -->
+          <div class="form-group">
+            <div class="form-label">
+              <label for="hba1cInput">HbA1c Level (%)</label>
+              <span class="clinical-badge-helper" style="color: var(--primary);">Normal: &lt;5.7% | Diabetic: ≥6.5%</span>
+            </div>
+            <div class="slider-sync-group">
+              <input type="range" id="hba1cSlider" class="range-slider" min="3.5" max="9.0" step="0.1" value="5.6" 
+                     oninput="syncSliderAndNumber('hba1cSlider', 'hba1cInput')">
+              <input type="number" id="hba1cInput" class="sync-number-box" min="3.5" max="9.0" step="0.1" value="5.6" 
+                     oninput="syncSliderAndNumber('hba1cInput', 'hba1cSlider')" required>
+            </div>
+          </div>
+
+          <!-- Body Mass Index (BMI) -->
+          <div class="form-group">
+            <div class="form-label">
+              <label for="bmiInput">Body Mass Index (BMI kg/m²)</label>
+              <span class="clinical-badge-helper">Healthy: 18.5 - 24.9</span>
+            </div>
+            <div class="slider-sync-group">
+              <input type="range" id="bmiSlider" class="range-slider" min="10" max="60" step="0.1" value="26.4" 
+                     oninput="syncSliderAndNumber('bmiSlider', 'bmiInput')">
+              <input type="number" id="bmiInput" class="sync-number-box" min="10" max="70" step="0.1" value="26.4" 
+                     oninput="syncSliderAndNumber('bmiInput', 'bmiSlider')" required>
+            </div>
+          </div>
+
+          <!-- Hypertension & Heart Disease Segmented Toggles -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Hypertension</label>
+              <div class="segmented-control">
+                <button type="button" class="segment-btn active" data-val="0" onclick="selectBinaryToggle('hypertension', 0, this)">No</button>
+                <button type="button" class="segment-btn" data-val="1" onclick="selectBinaryToggle('hypertension', 1, this)">Yes</button>
+              </div>
+              <input type="hidden" id="hypertensionInput" name="hypertension" value="0">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Heart Disease</label>
+              <div class="segmented-control">
+                <button type="button" class="segment-btn active" data-val="0" onclick="selectBinaryToggle('heart_disease', 0, this)">No</button>
+                <button type="button" class="segment-btn" data-val="1" onclick="selectBinaryToggle('heart_disease', 1, this)">Yes</button>
+              </div>
+              <input type="hidden" id="heartDiseaseInput" name="heart_disease" value="0">
+            </div>
+          </div>
+
+          <!-- Smoking History Dropdown -->
+          <div class="form-group">
+            <label class="form-label" for="smokingInput">Smoking History</label>
+            <select id="smokingInput" name="smoking_history" class="form-input" style="padding-left: 1rem;">
+              <option value="never" selected>Never smoked</option>
+              <option value="No Info">No clinical information recorded</option>
+              <option value="former">Former smoker</option>
+              <option value="current">Current smoker</option>
+              <option value="not current">Not currently smoking</option>
+              <option value="ever">Ever smoked</option>
+            </select>
+          </div>
+
+          <!-- Form Buttons -->
+          <div class="form-actions-row">
+            <button type="submit" id="predictBtn" class="btn-pill btn-primary btn-full">
+              <i data-lucide="play-circle" style="width: 20px; height: 20px;"></i>
+              <span>Run AI Risk Evaluation</span>
+            </button>
+          </div>
+
+          <div class="disclaimer-banner">
+            <i data-lucide="shield-alert" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+            <span>Educational decision-support platform. Not a standalone medical diagnosis.</span>
+          </div>
+
+        </form>
+      </section>
+
+      <!-- Right Column: Results Reveal, Donut Ring, Top Factors, Personalized Tips -->
+      <section class="results-column">
+        
+        <!-- Risk Result Card (Animated Donut Ring) -->
+        <div class="risk-ring-card" id="riskResultCard">
+          <div class="card-title" style="font-size: 1.15rem;">Cardiometabolic Risk Score</div>
+          <div class="card-desc" style="font-size: 0.82rem;">Calibrated XGBoost Diagnostic Probability</div>
+
+          <div class="donut-wrapper">
+            <svg class="donut-svg" viewBox="0 0 160 160">
+              <circle class="donut-bg-ring" cx="80" cy="80" r="70"></circle>
+              <circle id="donutProgressRing" class="donut-progress-ring" cx="80" cy="80" r="70"></circle>
+            </svg>
+            <div class="donut-center-text">
+              <span id="riskPercentageNum" class="donut-percent-num">--%</span>
+              <span class="donut-percent-sub">Risk Level</span>
+            </div>
+          </div>
+
+          <div id="riskBadge" class="risk-badge risk-badge-low">
+            <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+            <span id="riskBadgeText">Awaiting Assessment</span>
+          </div>
+
+          <p id="riskExplanation" class="risk-explanation-text">
+            Submit patient indicators to calculate statistical risk probability and feature importance breakdowns.
+          </p>
+        </div>
+
+        <!-- Top Contributing Factors Card (Gradient Horizontal Bars) -->
+        <div class="factors-card" id="topFactorsCard">
+          <div class="card-heading-row" style="margin-bottom: 1.25rem; padding-bottom: 0.75rem;">
+            <div>
+              <h3 class="card-title" style="font-size: 1.1rem;">Top Contributing Biomarkers</h3>
+              <p class="card-desc">Patient deviation against validated clinical baselines</p>
+            </div>
+          </div>
+
+          <div id="factorsListContainer">
+            <!-- Default Placeholder Factors -->
+            <div class="factor-item">
+              <div class="factor-header">
+                <span>HbA1c Glycation Level</span>
+                <span class="factor-impact-badge" id="factor-impact-1">--%</span>
+              </div>
+              <div class="factor-track">
+                <div class="factor-bar" id="factor-bar-1" style="width: 0%;"></div>
+              </div>
+              <div class="factor-note" id="factor-note-1">Primary physiological predictor for glycemic control.</div>
+            </div>
+
+            <div class="factor-item">
+              <div class="factor-header">
+                <span>Blood Glucose Clearance</span>
+                <span class="factor-impact-badge" id="factor-impact-2">--%</span>
+              </div>
+              <div class="factor-track">
+                <div class="factor-bar" id="factor-bar-2" style="width: 0%;"></div>
+              </div>
+              <div class="factor-note" id="factor-note-2">Fasting or postprandial circulating sugar load.</div>
+            </div>
+
+            <div class="factor-item">
+              <div class="factor-header">
+                <span>Body Mass Index (Adiposity)</span>
+                <span class="factor-impact-badge" id="factor-impact-3">--%</span>
+              </div>
+              <div class="factor-track">
+                <div class="factor-bar" id="factor-bar-3" style="width: 0%;"></div>
+              </div>
+              <div class="factor-note" id="factor-note-3">Visceral fat correlation with peripheral insulin resistance.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personalized Lifestyle Suggestions Card -->
+        <div class="tips-card" id="tipsCard">
+          <h3 class="card-title" style="font-size: 1.1rem;">Personalized Clinical Suggestions</h3>
+          <p class="card-desc">Evidence-based lifestyle pathways for cardiometabolic health</p>
+
+          <div class="tips-list" id="tipsListContainer">
+            <div class="tip-item">
+              <div class="tip-icon-box"><i data-lucide="apple" style="width: 18px; height: 18px;"></i></div>
+              <div class="tip-content">
+                <h4 id="tip-title-1">Dietary Carbohydrate Optimization</h4>
+                <p id="tip-desc-1">Emphasize low-glycemic, fiber-rich whole grains to stabilize insulin spikes.</p>
+              </div>
+            </div>
+
+            <div class="tip-item">
+              <div class="tip-icon-box"><i data-lucide="zap" style="width: 18px; height: 18px;"></i></div>
+              <div class="tip-content">
+                <h4 id="tip-title-2">Regular Physical Activity</h4>
+                <p id="tip-desc-2">Aim for 150 minutes weekly of aerobic exercise combined with strength routines.</p>
+              </div>
+            </div>
+
+            <div class="tip-item">
+              <div class="tip-icon-box"><i data-lucide="clock" style="width: 18px; height: 18px;"></i></div>
+              <div class="tip-content">
+                <h4 id="tip-title-3">Metabolic Screening Follow-up</h4>
+                <p id="tip-desc-3">Repeat biomarker panel within 6 to 12 months for active surveillance.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- Longitudinal Risk Trend Card (Gradient Area Chart with Chart.js) -->
+    <section class="trend-card" aria-label="Longitudinal Risk Analytics">
+      <div class="trend-header-row">
+        <div>
+          <h2 class="card-title">Patient Risk Trajectory (Past Checks)</h2>
+          <p class="card-desc">Continuous monitoring of estimated diabetes risk percentage over time</p>
+        </div>
+        <div class="today-mini-badge">
+          <i data-lucide="trending-up" style="width: 18px; height: 18px; color: var(--primary);"></i>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--textmuted);">Latest Score:</span>
+          <span class="today-score" id="today-score-val">
+            {% if latest %}{{ latest.risk_probability }}%{% else %}N/A{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div style="height: 280px; width: 100%;">
+        <canvas id="trendChartCanvas"></canvas>
+      </div>
+    </section>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Pass historical trend points from server
+  window.trendSeriesData = {{ trend_data|safe }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

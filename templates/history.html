@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Assessment History - HealthGuard AI{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  
+  <!-- Slim Rounded Sidebar -->
+  <aside class="app-sidebar" aria-label="Sidebar Navigation">
+    <div>
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <span style="font-weight: 800; font-size: 1.15rem; color: var(--primarydark);">HealthGuard<span style="color: var(--primary);">AI</span></span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="nav-item-link">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('history') }}" class="nav-item-link active">
+            <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+            <span>Assessment History</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('results') }}" class="nav-item-link">
+            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+            <span>Model Benchmarks</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('about') }}" class="nav-item-link">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            <span>Clinical Evidence</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('dashboard') }}" class="btn-pill btn-primary btn-full" style="font-size: 0.88rem; padding: 0.65rem 1rem;">
+        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+        <span>New Assessment</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="dashboard-main">
+    
+    <header class="dashboard-topbar">
+      <div>
+        <h1 class="greeting-title">Patient Longitudinal Records</h1>
+        <p class="greeting-sub">Historical record of evaluated assessments, clinical biomarkers, and predicted risk scores</p>
+      </div>
+
+      <div class="topbar-actions">
+        <a href="{{ url_for('export_history_csv') }}" class="btn-pill btn-secondary" style="padding: 0.6rem 1.25rem;">
+          <i data-lucide="download" style="width: 17px; height: 17px;"></i>
+          <span>Export CSV</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Table Card with Search & Filters -->
+    <div class="data-table-card">
+      <div class="table-header-controls" style="flex-wrap: wrap; gap: 1rem;">
+        
+        <!-- Filter Pills -->
+        <div class="filter-pills-row">
+          <a href="{{ url_for('history') }}" 
+             class="btn-pill {% if not current_filter %}btn-primary{% else %}btn-secondary{% endif %}" 
+             style="padding: 0.45rem 1rem; font-size: 0.82rem;">All ({{ total_count }})</a>
+          <a href="{{ url_for('history', risk='Low') }}" 
+             class="btn-pill {% if current_filter == 'Low' %}btn-primary{% else %}btn-secondary{% endif %}" 
+             style="padding: 0.45rem 1rem; font-size: 0.82rem;">Low Risk</a>
+          <a href="{{ url_for('history', risk='Moderate') }}" 
+             class="btn-pill {% if current_filter == 'Moderate' %}btn-primary{% else %}btn-secondary{% endif %}" 
+             style="padding: 0.45rem 1rem; font-size: 0.82rem;">Moderate Risk</a>
+          <a href="{{ url_for('history', risk='High') }}" 
+             class="btn-pill {% if current_filter == 'High' %}btn-primary{% else %}btn-secondary{% endif %}" 
+             style="padding: 0.45rem 1rem; font-size: 0.82rem;">High Risk</a>
+        </div>
+
+        <!-- Quick Search Field -->
+        <div style="position: relative; width: 260px;">
+          <input type="text" id="tableSearchInput" onkeyup="filterHistoryTable()" 
+                 placeholder="Search records..." class="form-input" style="padding: 0.5rem 1rem 0.5rem 2.2rem; font-size: 0.85rem;">
+          <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--textlight); display: flex;">
+            <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Table Body -->
+      <div class="table-responsive">
+        <table class="custom-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Evaluation Date</th>
+              <th>Demographics</th>
+              <th>Glucose</th>
+              <th>HbA1c</th>
+              <th>BMI</th>
+              <th>Vascular Status</th>
+              <th>Predicted Risk</th>
+              <th>Clinical Tier</th>
+              <th>Key Biomarkers</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if predictions %}
+              {% for p in predictions %}
+              <tr>
+                <td style="font-weight: 600; color: var(--textmuted); font-size: 0.82rem;">
+                  {{ p.created_at[:16] }}
+                </td>
+                <td>
+                  <strong>{{ p.gender }}</strong>, {{ p.age|round(0)|int }}y
+                </td>
+                <td>
+                  <span style="font-weight: 700; color: {% if p.blood_glucose_level >= 140 %}var(--danger){% else %}var(--text){% endif %};">
+                    {{ p.blood_glucose_level|round(0)|int }} mg/dL
+                  </span>
+                </td>
+                <td>
+                  <span style="font-weight: 700; color: {% if p.hba1c_level >= 6.5 %}var(--danger){% elif p.hba1c_level >= 5.7 %}var(--warning){% else %}var(--text){% endif %};">
+                    {{ p.hba1c_level }}%
+                  </span>
+                </td>
+                <td>
+                  {{ p.bmi|round(1) }}
+                </td>
+                <td style="font-size: 0.80rem;">
+                  {% if p.hypertension == 1 %}<span style="color: var(--danger); font-weight: 600;">HTN</span>{% else %}<span style="color: var(--textlight);">No HTN</span>{% endif %} / 
+                  {% if p.heart_disease == 1 %}<span style="color: var(--danger); font-weight: 600;">CVD</span>{% else %}<span style="color: var(--textlight);">No CVD</span>{% endif %}
+                </td>
+                <td>
+                  <span style="font-size: 1.05rem; font-weight: 800; color: var(--primarydark);">
+                    {{ p.risk_probability }}%
+                  </span>
+                </td>
+                <td>
+                  {% if p.risk_level == 'Low' %}
+                    <span class="risk-badge risk-badge-low">Low</span>
+                  {% elif p.risk_level == 'Moderate' %}
+                    <span class="risk-badge risk-badge-moderate">Moderate</span>
+                  {% else %}
+                    <span class="risk-badge risk-badge-high">High Risk</span>
+                  {% endif %}
+                </td>
+                <td style="font-size: 0.78rem; color: var(--textmuted); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ p.top_factors }}">
+                  {{ p.top_factors }}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="9" style="text-align: center; padding: 3rem; color: var(--textmuted);">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="file-question" style="width: 40px; height: 40px; color: var(--textlight);"></i>
+                    <p style="font-weight: 600;">No patient assessments found matching this filter.</p>
+                    <a href="{{ url_for('dashboard') }}" class="btn-pill btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+                      Create First Assessment
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function filterHistoryTable() {
+    const query = document.getElementById('tableSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#historyTable tbody tr');
+    
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+</script>
+{% endblock %}

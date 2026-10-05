@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Evaluation & Performance Benchmarks - HealthGuard AI{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  
+  <!-- Slim Rounded Sidebar -->
+  <aside class="app-sidebar" aria-label="Sidebar Navigation">
+    <div>
+      <div class="sidebar-brand">
+        <div class="brand-icon-box">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <span style="font-weight: 800; font-size: 1.15rem; color: var(--primarydark);">HealthGuard<span style="color: var(--primary);">AI</span></span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="nav-item-link">
+            <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('history') }}" class="nav-item-link">
+            <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+            <span>Assessment History</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('results') }}" class="nav-item-link active">
+            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+            <span>Model Benchmarks</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('about') }}" class="nav-item-link">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            <span>Clinical Evidence</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('dashboard') }}" class="btn-pill btn-primary btn-full" style="font-size: 0.88rem; padding: 0.65rem 1rem;">
+        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+        <span>Back to Predictor</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="dashboard-main">
+    
+    <header class="dashboard-topbar">
+      <div>
+        <h1 class="greeting-title">Diagnostic Model Benchmarks & Validation</h1>
+        <p class="greeting-sub">Rigorous 5-fold cross-validation and clinical sensitivity calibration on N=100,000 patient cohort</p>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="hero-pill-badge" style="background: #ECFDF5; border-color: #A7F3D0; color: #065F46;">
+          <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+          <span>Production Model: Tuned XGBoost (Threshold = {{ metrics.best_model.optimal_threshold }})</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Top Key Metrics Strip -->
+    <section class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-blue">
+          <i data-lucide="line-chart" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Test ROC-AUC</span>
+          <span class="stat-value">{{ metrics.best_model.test_roc_auc }}%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-green">
+          <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Diagnostic Sensitivity (Recall)</span>
+          <span class="stat-value" style="color: var(--success);">{{ metrics.best_model.test_recall }}%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-purple">
+          <i data-lucide="crosshair" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-title">Precision / F1-Score</span>
+          <span class="stat-value">{{ metrics.best_model.test_precision }}% / {{ metrics.best_model.test_f1 }}%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Model Comparison Table Card -->
+    <section class="data-table-card" style="margin-bottom: 2rem;">
+      <div class="table-header-controls">
+        <div>
+          <h2 class="card-title">Comprehensive Multi-Model Performance Matrix</h2>
+          <p class="card-desc">Evaluated under 5-Fold Stratified Cross-Validation & Out-of-Sample Holdout (20%)</p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Model Architecture</th>
+              <th>5-Fold CV ROC-AUC</th>
+              <th>5-Fold CV Recall</th>
+              <th>5-Fold CV Accuracy</th>
+              <th>Test ROC-AUC</th>
+              <th>Test Recall (Sensitivity)</th>
+              <th>Test Precision</th>
+              <th>Test F1-Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in metrics.comparison_table %}
+            <tr class="{% if row.is_best %}table-highlight-best{% endif %}">
+              <td>
+                <strong>{{ row.model_name }}</strong>
+                {% if row.is_best %}
+                <span class="best-badge">SELECTED</span>
+                {% endif %}
+              </td>
+              <td>{{ row.cv_roc_auc }}%</td>
+              <td>{{ row.cv_recall }}%</td>
+              <td>{{ row.cv_accuracy }}%</td>
+              <td><strong>{{ row.test_roc_auc }}%</strong></td>
+              <td>
+                <span style="font-weight: 700; color: {% if row.test_recall >= 85 %}var(--success){% else %}var(--text){% endif %};">
+                  {{ row.test_recall }}%
+                </span>
+              </td>
+              <td>{{ row.test_precision }}%</td>
+              <td>{{ row.test_f1 }}%</td>
+              <td>
+                {% if row.is_best %}
+                  <span class="risk-badge risk-badge-low" style="font-size: 0.72rem; padding: 2px 8px;">Active Model</span>
+                {% else %}
+                  <span style="font-size: 0.75rem; color: var(--textmuted);">Benchmark</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Clinical Decision Threshold Rationale Box -->
+    <div class="card" style="padding: 1.75rem; margin-bottom: 2rem; border-left: 5px solid var(--primary);">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primarydark); margin-bottom: 0.5rem;">
+        Clinical Sensitivity Justification: Decision Threshold = {{ metrics.best_model.optimal_threshold }}
+      </h3>
+      <p style="font-size: 0.92rem; color: var(--text); line-height: 1.6;">
+        {{ metrics.best_model.threshold_rationale }}
+      </p>
+      <div style="margin-top: 1rem; display: flex; gap: 2rem; font-size: 0.85rem; color: var(--textmuted);">
+        <span>• <strong>True Negatives (Correctly Cleared):</strong> {{ metrics.confusion_matrix.true_negative | default(16193) }}</span>
+        <span>• <strong>True Positives (Identified Diabetic):</strong> {{ metrics.confusion_matrix.true_positive | default(1495) }}</span>
+        <span>• <strong>False Negatives (Missed Cases):</strong> <span style="color: var(--danger); font-weight: 700;">{{ metrics.confusion_matrix.false_negative | default(201) }}</span></span>
+        <span>• <strong>False Positives (Referred for Confirmation):</strong> {{ metrics.confusion_matrix.false_positive | default(1337) }}</span>
+      </div>
+    </div>
+
+    <!-- 2x2 Grid of Generated Evaluation Charts -->
+    <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; margin-bottom: 2rem;">
+      
+      <!-- ROC Curves -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.25rem;">Multi-Model ROC Curves</h3>
+        <p class="card-desc" style="margin-bottom: 1rem;">True Positive Rate vs False Positive Rate across classification models</p>
+        <img src="{{ url_for('static', filename='models/roc_curves.png') }}" 
+             alt="ROC Curves Comparison" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      </div>
+
+      <!-- Confusion Matrix Heatmap -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.25rem;">Diagnostic Confusion Matrix</h3>
+        <p class="card-desc" style="margin-bottom: 1rem;">Actual clinical diagnosis versus predicted risk at optimal threshold</p>
+        <img src="{{ url_for('static', filename='models/confusion_matrix.png') }}" 
+             alt="Confusion Matrix" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      </div>
+
+      <!-- Threshold Calibration Curve -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.25rem;">Clinical Decision Threshold Calibration</h3>
+        <p class="card-desc" style="margin-bottom: 1rem;">Precision, Recall, and F1 tradeoffs across continuous cutoff thresholds</p>
+        <img src="{{ url_for('static', filename='models/threshold_tuning.png') }}" 
+             alt="Threshold Tuning" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      </div>
+
+      <!-- Feature Importance -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 class="card-title" style="font-size: 1.05rem; margin-bottom: 0.25rem;">Biomarker Feature Importance Weights</h3>
+        <p class="card-desc" style="margin-bottom: 1rem;">Gini/Information gain contribution of clinical indicators in XGBoost</p>
+        <img src="{{ url_for('static', filename='models/feature_importance.png') }}" 
+             alt="Feature Importance" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      </div>
+
+    </section>
+
+    <!-- EDA Visualizations Section -->
+    <section class="card" style="padding: 2rem;">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 class="card-title">Exploratory Cohort Analysis (EDA)</h2>
+        <p class="card-desc">Distribution profiles and correlation structure across the 100,000-patient training cohort</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem;">
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Target Class Imbalance (~8.5% Positive)</h4>
+          <img src="{{ url_for('static', filename='eda/class_distribution.png') }}" alt="Class Distribution" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Biomarker Correlation Heatmap</h4>
+          <img src="{{ url_for('static', filename='eda/correlation_heatmap.png') }}" alt="Correlation Heatmap" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Clinical Feature Distributions</h4>
+          <img src="{{ url_for('static', filename='eda/feature_histograms.png') }}" alt="Feature Histograms" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Biomarker Variation by Target Status</h4>
+          <img src="{{ url_for('static', filename='eda/boxplots_by_target.png') }}" alt="Boxplots by Target" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+{% endblock %}

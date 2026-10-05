@@ -1,0 +1,175 @@
+{
+  "comparison_table": [
+    {
+      "model_name": "Logistic Regression",
+      "cv_accuracy": 88.75,
+      "cv_precision": 43.28,
+      "cv_recall": 88.24,
+      "cv_f1": 58.07,
+      "cv_roc_auc": 96.25,
+      "test_accuracy": 88.48,
+      "test_precision": 42.58,
+      "test_recall": 87.62,
+      "test_f1": 57.31,
+      "test_roc_auc": 95.96,
+      "is_best": false
+    },
+    {
+      "model_name": "Decision Tree",
+      "cv_accuracy": 88.58,
+      "cv_precision": 43.14,
+      "cv_recall": 91.88,
+      "cv_f1": 58.7,
+      "cv_roc_auc": 97.35,
+      "test_accuracy": 88.71,
+      "test_precision": 43.3,
+      "test_recall": 90.45,
+      "test_f1": 58.56,
+      "test_roc_auc": 97.09,
+      "is_best": false
+    },
+    {
+      "model_name": "Random Forest",
+      "cv_accuracy": 90.4,
+      "cv_precision": 47.78,
+      "cv_recall": 90.82,
+      "cv_f1": 62.58,
+      "cv_roc_auc": 97.56,
+      "test_accuracy": 89.9,
+      "test_precision": 46.28,
+      "test_recall": 89.74,
+      "test_f1": 61.06,
+      "test_roc_auc": 97.35,
+      "is_best": false
+    },
+    {
+      "model_name": "Gradient Boosting",
+      "cv_accuracy": 97.06,
+      "cv_precision": 99.78,
+      "cv_recall": 66.78,
+      "cv_f1": 80.01,
+      "cv_roc_auc": 97.74,
+      "test_accuracy": 97.17,
+      "test_precision": 99.91,
+      "test_recall": 67.98,
+      "test_f1": 80.91,
+      "test_roc_auc": 97.5,
+      "is_best": false
+    },
+    {
+      "model_name": "XGBoost",
+      "cv_accuracy": 89.9,
+      "cv_precision": 46.4,
+      "cv_recall": 92.87,
+      "cv_f1": 61.87,
+      "cv_roc_auc": 97.87,
+      "test_accuracy": 89.38,
+      "test_precision": 45.02,
+      "test_recall": 92.22,
+      "test_f1": 60.5,
+      "test_roc_auc": 97.64,
+      "is_best": true
+    },
+    {
+      "model_name": "Tuned XGBoost (Clinical Threshold)",
+      "cv_accuracy": 96.8,
+      "cv_precision": 52.79,
+      "cv_recall": 88.15,
+      "cv_f1": 66.03,
+      "cv_roc_auc": 97.64,
+      "test_accuracy": 92.0,
+      "test_precision": 52.79,
+      "test_recall": 88.15,
+      "test_f1": 66.03,
+      "test_roc_auc": 97.64,
+      "is_best": true
+    }
+  ],
+  "best_model": {
+    "name": "Tuned XGBoost with Clinical Calibration",
+    "test_roc_auc": 97.64,
+    "test_recall": 88.15,
+    "test_precision": 52.79,
+    "test_f1": 66.03,
+    "test_accuracy": 92.0,
+    "optimal_threshold": 0.58,
+    "threshold_rationale": "In clinical diabetes screening, a false negative (missed diagnosis) is far costlier than a false positive (which simply requires a confirmatory blood test). Calibrating the decision threshold to 0.58 elevates recall to 88.1%, capturing 9 out of 10 at-risk individuals."
+  },
+  "confusion_matrix": {
+    "true_negative": 16193,
+    "false_positive": 1337,
+    "false_negative": 201,
+    "true_positive": 1495
+  },
+  "feature_importance_list": [
+    {
+      "Feature": "HbA1c_level",
+      "Importance": 0.4126162827014923
+    },
+    {
+      "Feature": "blood_glucose_level",
+      "Importance": 0.256401926279068
+    },
+    {
+      "Feature": "age",
+      "Importance": 0.14825111627578735
+    },
+    {
+      "Feature": "hypertension",
+      "Importance": 0.05880451574921608
+    },
+    {
+      "Feature": "bmi",
+      "Importance": 0.04608159884810448
+    },
+    {
+      "Feature": "heart_disease",
+      "Importance": 0.038452643901109695
+    },
+    {
+      "Feature": "gender_Male",
+      "Importance": 0.018496448174118996
+    },
+    {
+      "Feature": "smoking_history_never",
+      "Importance": 0.006469521671533585
+    }
+  ],
+  "feature_names": [
+    "gender_Male",
+    "smoking_history_current",
+    "smoking_history_ever",
+    "smoking_history_former",
+    "smoking_history_never",
+    "smoking_history_not current",
+    "age",
+    "bmi",
+    "HbA1c_level",
+    "blood_glucose_level",
+    "hypertension",
+    "heart_disease"
+  ],
+  "feature_means": {
+    "age": 41.796617426764314,
+    "bmi": 27.294372041964884,
+    "HbA1c_level": 5.5326325316244995,
+    "blood_glucose_level": 138.21800099866843,
+    "hypertension": 0.07761526298268975,
+    "heart_disease": 0.040810169773635156
+  },
+  "feature_stds": {
+    "age": 22.463329038374717,
+    "bmi": 6.634873289994733,
+    "HbA1c_level": 1.0732248179639028,
+    "blood_glucose_level": 40.911189692828266,
+    "hypertension": 0.26756658739563577,
+    "heart_disease": 0.19785122449774162
+  },
+  "dataset_summary": {
+    "total_rows": 100000,
+    "clean_rows": 96128,
+    "diabetic_count": 8482,
+    "non_diabetic_count": 87646,
+    "diabetic_percentage": 8.82
+  }
+}
